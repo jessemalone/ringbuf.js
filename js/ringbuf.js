@@ -144,6 +144,31 @@ export class RingBuffer {
 
     return to_write;
   }
+    pushlen(elements, len) {
+        var rd = Atomics.load(this.read_ptr, 0);
+        var wr = Atomics.load(this.write_ptr, 0);
+
+        if ((wr + 1) % this._storage_capacity() == rd) {
+            // full
+            return 0;
+        }
+
+        let to_write = Math.min(this._available_write(rd, wr), len);
+        let first_part = Math.min(this._storage_capacity() - wr, to_write);
+        let second_part = to_write - first_part;
+
+        this._copy(elements, 0, this.storage, wr, first_part);
+        this._copy(elements, first_part, this.storage, 0, second_part);
+
+        // publish the enqueued data to the other side
+        Atomics.store(
+            this.write_ptr,
+            0,
+            (wr + to_write) % this._storage_capacity()
+        );
+
+        return to_write;
+    }
 
   /**
    * Read up to `elements.length` elements from the ring buffer. `elements` is a typed
@@ -180,6 +205,28 @@ export class RingBuffer {
 
     return to_read;
   }
+
+    poplen(elements, len) {
+        var rd = Atomics.load(this.read_ptr, 0);
+        var wr = Atomics.load(this.write_ptr, 0);
+
+        if (wr == rd) {
+            return 0;
+        }
+
+        let to_read = Math.min(this._available_read(rd, wr), len);
+
+        let first_part = Math.min(this._storage_capacity() - rd, to_read);
+        let second_part = to_read - first_part;
+
+        this._copy(this.storage, rd, elements, 0, first_part);
+        this._copy(this.storage, 0, elements, first_part, second_part);
+
+        Atomics.store(this.read_ptr, 0, (rd + to_read) % this._storage_capacity());
+
+        return to_read;
+        
+    }
 
   /**
    * @return True if the ring buffer is empty false otherwise. This can be late
