@@ -1,7 +1,3 @@
-'use strict';
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
 /**
  * Interleaved -> Planar audio buffer conversion
  *
@@ -579,11 +575,5 @@ class RingBuffer {
   }
 }
 
-exports.AudioReader = AudioReader;
-exports.AudioWriter = AudioWriter;
-exports.ParameterReader = ParameterReader;
-exports.ParameterWriter = ParameterWriter;
-exports.RingBuffer = RingBuffer;
-exports.deinterleave = deinterleave;
-exports.interleave = interleave;
-//# sourceMappingURL=index.js.map
+export { AudioReader, AudioWriter, ParameterReader, ParameterWriter, RingBuffer, deinterleave, interleave };
+//# sourceMappingURL=index.mjs.map
